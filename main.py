@@ -1,6 +1,40 @@
-from PyPDF2 import PdfFileReader, PdfFileWriter
+from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
 import sys, os
 
+def merge(files, destination):
+    merged = PdfFileMerger()
+
+    for file in files:
+        with open(file, 'rb') as f:
+            pdf = PdfFileReader(f)
+
+            if pdf.isEncrypted:
+                pdf.decrypt('')
+
+            merged.append(pdf)
+
+    with open(destination, 'wb') as output:
+        merged.write(output)
+
+def merge_multiple_files(files, destination):
+    unique_pdf = PdfFileWriter()
+
+    for file in files:
+        print("Trying to add this file: " + file + "!")
+        with open(file, 'rb') as f:
+            pdf = PdfFileReader(f)
+            if pdf.isEncrypted:
+                pdf.decrypt('')
+            number_of_pages = pdf.getNumPages()
+
+            for page in range(0, number_of_pages):
+                pdfpage = pdf.getPage(page)
+                print(pdfpage.extractText())
+                unique_pdf.addPage(pdfpage)
+
+    for page in range(unique_pdf.getNumPages()):
+        print(unique_pdf.getPage(page).extractText())
+    return unique_pdf
 
 def remove_slides(source, destination):
     number_of_pages = 0
@@ -32,6 +66,9 @@ def remove_slides(source, destination):
 
 if __name__ == '__main__':
     z = list(filter(lambda x: x.startswith("slides"), os.listdir()))
+    z.sort()
+    print(z)
+    merge(z, 'test_merge.pdf')
     # try:
     #     source, destination = sys.argv[1], sys.argv[2]
     # except:
