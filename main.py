@@ -1,20 +1,35 @@
-from PyPDF2 import PdfFileReader, PdfFileWriter
-import sys, os
+from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
+import os
 
+def merge_files(destination_path, files):
+    merged_file = PdfFileMerger()
 
-def remove_slides(source, destination):
+    for file in files:
+        with open(file, 'rb') as f:
+            pdf = PdfFileReader(f)
+
+            if pdf.isEncrypted:
+                pdf.decrypt('')
+
+            merged_file.append(pdf)
+
+    with open(destination_path, 'wb') as output:
+        merged_file.write(output)
+    return True
+
+def remove_slides(source_path, destination_path):
     number_of_pages = 0
     unique_pages = []
 
     unique_pdf = PdfFileWriter()
 
-    with open(source, 'rb') as f:
+    with open(source_path, 'rb') as f:
         pdf = PdfFileReader(f)
         if pdf.isEncrypted:
             pdf.decrypt('')
         number_of_pages = pdf.getNumPages()
 
-        for pages in range(0, number_of_pages):
+        for pages in range(number_of_pages):
             curr_page = ''.join(pdf.getPage(pages).extractText().split()[:-1])
             if pages == number_of_pages - 1:
                 unique_pdf.addPage(pdf.getPage(pages))
@@ -27,14 +42,12 @@ def remove_slides(source, destination):
                 unique_pdf.addPage(pdf.getPage(pages))
 
 
-        with open(destination, "wb") as output:
+        with open(destination_path, "wb") as output:
             unique_pdf.write(output)
 
 if __name__ == '__main__':
-    z = list(filter(lambda x: x.startswith("slides"), os.listdir()))
-    # try:
-    #     source, destination = sys.argv[1], sys.argv[2]
-    # except:
-    #     print("Not enough cli args passed in. Need at least 2 for source and destination paths.")
-    #     exit(1)
-    # remove_slides(source, destination)
+    list_of_pdfs = list(filter(lambda x: x.startswith("slides"), os.listdir()))
+    list_of_pdfs.sort()
+    if merge_files('merged.pdf', list_of_pdfs):
+        remove_slides('merged.pdf', 'small.pdf')
+        print("We are done!")
