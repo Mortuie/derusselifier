@@ -1,5 +1,5 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
-import os
+import os, sys
 
 def merge_files(destination_path, files):
     merged_file = PdfFileMerger()
@@ -46,8 +46,13 @@ def remove_slides(source_path, destination_path):
             unique_pdf.write(output)
 
 if __name__ == '__main__':
-    list_of_pdfs = list(filter(lambda x: x.startswith("slides"), os.listdir()))
-    list_of_pdfs.sort()
-    if merge_files('merged.pdf', list_of_pdfs):
-        remove_slides('merged.pdf', 'small.pdf')
-        print("We are done!")
+    try:
+        output_file_name = sys.argv[1]
+        list_of_pdfs = list(filter(lambda x: x.startswith("slides"), os.listdir()))
+        list_of_pdfs.sort()
+        if merge_files('merged.pdf', list_of_pdfs):
+            remove_slides('merged.pdf', output_file_name)
+            print("We are done!")
+    except:
+        print("Didn't enter file output name!")
+        exit(1)
