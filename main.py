@@ -50,6 +50,7 @@ if __name__ == '__main__':
         output_file_name = sys.argv[1]
         list_of_pdfs = list(filter(lambda x: x.startswith("slides"), os.listdir()))
         list_of_pdfs.sort()
+        print(list_of_pdfs)
         if merge_files('merged.pdf', list_of_pdfs):
             remove_slides('merged.pdf', output_file_name)
             print("We are done!")
